@@ -1,0 +1,326 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Приглашение-конверт</title>
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    html, body {
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+      font-family: Georgia, serif;
+      background: #111;
+    }
+
+    .scene {
+      position: relative;
+      width: 100vw;
+      height: 100vh;
+      overflow: hidden;
+      background: #e9e7e3;
+    }
+
+    /* Контент приглашения под конвертом */
+    .invitation-content {
+      position: absolute;
+      inset: 0;
+      z-index: 1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 40px 24px;
+      background:
+        linear-gradient(to bottom, #f8f4ee, #efe7dc);
+    }
+
+    .card {
+      width: min(92vw, 520px);
+      min-height: 70vh;
+      background: rgba(255,255,255,0.88);
+      border-radius: 24px;
+      box-shadow: 0 20px 50px rgba(0,0,0,0.12);
+      padding: 40px 28px;
+      text-align: center;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      transform: translateY(30px);
+      opacity: 0;
+      transition: 1s ease;
+    }
+
+    .card.show {
+      transform: translateY(0);
+      opacity: 1;
+    }
+
+    .card h1 {
+      font-size: clamp(28px, 5vw, 44px);
+      margin-bottom: 16px;
+      color: #5d4b3e;
+      font-weight: 400;
+    }
+
+    .card p {
+      font-size: clamp(16px, 2.7vw, 20px);
+      line-height: 1.7;
+      color: #6e5c4f;
+      margin-bottom: 12px;
+    }
+
+    /* Конверт */
+    .envelope {
+      position: absolute;
+      inset: 0;
+      z-index: 5;
+      background: #d9d7d2;
+      perspective: 1800px;
+    }
+
+    /* Общие створки */
+    .flap {
+      position: absolute;
+      background: linear-gradient(145deg, #d7d5d1, #cfcdc8);
+      box-shadow: 0 10px 20px rgba(0,0,0,0.08);
+      transition: transform 1.2s ease;
+      will-change: transform;
+    }
+
+    /* Верхняя треугольная створка */
+    .flap-top {
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 52%;
+      clip-path: polygon(0 0, 100% 0, 50% 100%);
+      transform-origin: top center;
+      z-index: 9;
+    }
+
+    /* Нижняя треугольная створка */
+    .flap-bottom {
+      bottom: 0;
+      left: 0;
+      width: 100%;
+      height: 52%;
+      clip-path: polygon(0 100%, 100% 100%, 50% 0);
+      z-index: 6;
+      background: linear-gradient(145deg, #d3d1cc, #c8c6c1);
+    }
+
+    /* Левая створка */
+    .flap-left {
+      top: 0;
+      left: 0;
+      width: 55%;
+      height: 100%;
+      clip-path: polygon(0 0, 100% 50%, 0 100%);
+      transform-origin: left center;
+      z-index: 8;
+    }
+
+    /* Правая створка */
+    .flap-right {
+      top: 0;
+      right: 0;
+      width: 55%;
+      height: 100%;
+      clip-path: polygon(100% 0, 0 50%, 100% 100%);
+      transform-origin: right center;
+      z-index: 7;
+      background: linear-gradient(145deg, #d4d2cd, #cac8c3);
+    }
+
+    /* Лёгкая бумажная фактура */
+    .paper-texture {
+      position: absolute;
+      inset: 0;
+      opacity: 0.16;
+      z-index: 10;
+      pointer-events: none;
+      background-image:
+        radial-gradient(rgba(0,0,0,0.12) 0.7px, transparent 0.7px);
+      background-size: 7px 7px;
+      mix-blend-mode: multiply;
+    }
+
+    /* Печать по центру */
+    .seal-btn {
+      position: absolute;
+      left: 50%;
+      top: 50%;
+      transform: translate(-50%, -50%);
+      z-index: 12;
+      width: clamp(70px, 12vw, 110px);
+      height: clamp(70px, 12vw, 110px);
+      border: none;
+      background: transparent;
+      cursor: pointer;
+      padding: 0;
+      transition: transform 0.25s ease;
+    }
+
+    .seal-btn:hover {
+      transform: translate(-50%, -50%) scale(1.04);
+    }
+
+    .seal-btn img {
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
+      display: block;
+      filter: drop-shadow(0 8px 14px rgba(0,0,0,0.22));
+    }
+
+    /* Тонкие линии-сгибы */
+    .crease {
+      position: absolute;
+      background: rgba(0,0,0,0.08);
+      z-index: 11;
+      pointer-events: none;
+      filter: blur(0.3px);
+    }
+
+    .crease-1 {
+      width: 2px;
+      height: 70vh;
+      left: 50%;
+      top: 0;
+      transform: translateX(-50%) rotate(45deg);
+      transform-origin: top center;
+    }
+
+    .crease-2 {
+      width: 2px;
+      height: 70vh;
+      left: 50%;
+      top: 0;
+      transform: translateX(-50%) rotate(-45deg);
+      transform-origin: top center;
+    }
+
+    .crease-3 {
+      width: 2px;
+      height: 70vh;
+      left: 50%;
+      bottom: 0;
+      transform: translateX(-50%) rotate(-45deg);
+      transform-origin: bottom center;
+    }
+
+    .crease-4 {
+      width: 2px;
+      height: 70vh;
+      left: 50%;
+      bottom: 0;
+      transform: translateX(-50%) rotate(45deg);
+      transform-origin: bottom center;
+    }
+
+    /* Состояние открытия */
+    .scene.open .seal-btn {
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.3s ease;
+    }
+
+    .scene.open .flap-top {
+      transform: rotateX(165deg);
+    }
+
+    .scene.open .flap-left {
+      transform: rotateY(-160deg);
+    }
+
+    .scene.open .flap-right {
+      transform: rotateY(160deg);
+    }
+
+    .scene.open .flap-bottom {
+      transform: translateY(8%);
+    }
+
+    .hint {
+      position: absolute;
+      left: 50%;
+      top: calc(50% + 75px);
+      transform: translateX(-50%);
+      z-index: 12;
+      font-size: 14px;
+      color: rgba(60, 48, 38, 0.75);
+      letter-spacing: 0.08em;
+      transition: opacity 0.3s ease;
+    }
+
+    .scene.open .hint {
+      opacity: 0;
+    }
+
+    @media (max-width: 768px) {
+      .card {
+        min-height: 64vh;
+        border-radius: 20px;
+        padding: 32px 22px;
+      }
+
+      .hint {
+        top: calc(50% + 68px);
+        font-size: 12px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="scene" id="scene">
+    <div class="invitation-content">
+      <div class="card" id="card">
+        <h1>Наше приглашение</h1>
+        <p>С радостью приглашаем вас на наш особенный день.</p>
+        <p>Здесь будет твоя первая страница сайта-приглашения.</p>
+        <p>Можно добавить дату, имена, музыку, тайминг и кнопку ниже.</p>
+      </div>
+    </div>
+
+    <div class="envelope">
+      <div class="flap flap-bottom"></div>
+      <div class="flap flap-right"></div>
+      <div class="flap flap-left"></div>
+      <div class="flap flap-top"></div>
+
+      <div class="crease crease-1"></div>
+      <div class="crease crease-2"></div>
+      <div class="crease crease-3"></div>
+      <div class="crease crease-4"></div>
+
+      <div class="paper-texture"></div>
+
+      <button class="seal-btn" id="openBtn" aria-label="Открыть приглашение">
+        <img src="seal.png" alt="Печать" />
+      </button>
+
+      <div class="hint">нажмите, чтобы открыть</div>
+    </div>
+  </div>
+
+  <script>
+    const scene = document.getElementById('scene');
+    const openBtn = document.getElementById('openBtn');
+    const card = document.getElementById('card');
+
+    openBtn.addEventListener('click', () => {
+      scene.classList.add('open');
+
+      setTimeout(() => {
+        card.classList.add('show');
+      }, 650);
+    });
+  </script>
+</body>
+</html>
