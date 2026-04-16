@@ -5,457 +5,736 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Приглашение</title>
   <style>
-    * {
-      box-sizing: border-box;
-      margin: 0;
-      padding: 0;
+    :root {
+      --bg-main: #54575E;
+      --paper: #d9d9d7;
+      --paper-light: #e8e8e6;
+      --paper-dark: #c9c9c7;
+      --white-band: #f5f5f3;
+      --text-light: rgba(255,255,255,0.96);
+      --text-dark: #54575E;
+      --line: rgba(84, 87, 94, 0.58);
+      --shadow-soft: rgba(0,0,0,0.12);
+      --shadow-strong: rgba(0,0,0,0.18);
+      --radius: 26px;
+      --content-width: 820px;
     }
 
-    html, body {
-      width: 100%;
-      height: 100%;
+    * {
+      box-sizing: border-box;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    html {
+      scroll-behavior: smooth;
+    }
+
+    body {
+      margin: 0;
+      font-family: Georgia, "Times New Roman", serif;
+      background: var(--bg-main);
+      color: var(--text-light);
       overflow-x: hidden;
-      background: #0d0d0d;
-      font-family: "Georgia", serif;
     }
 
     body.locked {
       overflow: hidden;
+      height: 100vh;
+    }
+
+    img,
+    video {
+      display: block;
+      max-width: 100%;
     }
 
     .page {
-      min-height: 100vh;
-      background: #f6f3ef;
+      position: relative;
+      background: var(--bg-main);
     }
 
-    /* =========================
-         ЭКРАН С КОНВЕРТОМ
-       ========================= */
+    /* ===== КОНВЕРТ ===== */
 
     .intro {
       position: fixed;
       inset: 0;
-      z-index: 100;
-      background: #0b0b0b;
+      z-index: 200;
+      background: #000;
       display: flex;
       align-items: center;
       justify-content: center;
-      padding: 18px;
-    }
-
-    .envelope-frame {
-      position: relative;
-      width: min(94vw, 760px);
-      height: min(92vh, 1500px);
-      border-radius: 26px;
-      overflow: hidden;
-      background: linear-gradient(180deg, #cfcfcf 0%, #bababa 100%);
-      box-shadow:
-        0 10px 40px rgba(0,0,0,0.28),
-        inset 0 0 0 1px rgba(255,255,255,0.08);
-    }
-
-    .paper-noise {
-      position: absolute;
-      inset: 0;
-      opacity: 0.12;
-      pointer-events: none;
-      background-image:
-        radial-gradient(rgba(0,0,0,0.22) 0.5px, transparent 0.5px);
-      background-size: 6px 6px;
-      mix-blend-mode: multiply;
-      z-index: 30;
-    }
-
-    .envelope-core {
-      position: absolute;
-      inset: 0;
-      background: linear-gradient(180deg, #c9c9c9 0%, #bdbdbd 100%);
-    }
-
-    .flap {
-      position: absolute;
-      transition: transform 1.15s cubic-bezier(.22,.8,.2,1);
-      will-change: transform;
-      backface-visibility: hidden;
-    }
-
-    /* Верхняя створка */
-    .flap-top {
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 50%;
-      clip-path: polygon(0 0, 100% 0, 50% 100%);
-      background: linear-gradient(180deg, #cfcfcf 0%, #bdbdbd 100%);
-      transform-origin: top center;
-      z-index: 16;
-      box-shadow: inset 0 -18px 28px rgba(0,0,0,0.06);
-    }
-
-    /* Левая створка */
-    .flap-left {
-      top: 0;
-      left: 0;
-      width: 50%;
-      height: 100%;
-      clip-path: polygon(0 0, 100% 50%, 0 100%);
-      background: linear-gradient(180deg, #c7c7c7 0%, #b4b4b4 100%);
-      transform-origin: left center;
-      z-index: 14;
-      box-shadow: inset -14px 0 24px rgba(0,0,0,0.05);
-    }
-
-    /* Правая створка */
-    .flap-right {
-      top: 0;
-      right: 0;
-      width: 50%;
-      height: 100%;
-      clip-path: polygon(100% 0, 0 50%, 100% 100%);
-      background: linear-gradient(180deg, #cacaca 0%, #b7b7b7 100%);
-      transform-origin: right center;
-      z-index: 13;
-      box-shadow: inset 14px 0 24px rgba(0,0,0,0.06);
-    }
-
-    /* Нижняя створка */
-    .flap-bottom {
-      bottom: 0;
-      left: 0;
-      width: 100%;
-      height: 44%;
-      clip-path: polygon(0 100%, 100% 100%, 50% 0);
-      background: linear-gradient(180deg, #bdbdbd 0%, #a9a9a9 100%);
-      z-index: 12;
-      box-shadow: inset 0 18px 28px rgba(0,0,0,0.08);
-      transition: transform 1.15s cubic-bezier(.22,.8,.2,1);
-    }
-
-    /* Линии сгиба, как на референсе */
-    .crease {
-      position: absolute;
-      background: rgba(0,0,0,0.11);
-      pointer-events: none;
-      z-index: 20;
-      filter: blur(0.6px);
-    }
-
-    .crease.top-left {
-      width: 2px;
-      height: 58%;
-      left: 50%;
-      top: 0;
-      transform: translateX(-50%) rotate(45deg);
-      transform-origin: top center;
-    }
-
-    .crease.top-right {
-      width: 2px;
-      height: 58%;
-      left: 50%;
-      top: 0;
-      transform: translateX(-50%) rotate(-45deg);
-      transform-origin: top center;
-    }
-
-    .crease.bottom-left {
-      width: 2px;
-      height: 58%;
-      left: 50%;
-      bottom: 0;
-      transform: translateX(-50%) rotate(-45deg);
-      transform-origin: bottom center;
-    }
-
-    .crease.bottom-right {
-      width: 2px;
-      height: 58%;
-      left: 50%;
-      bottom: 0;
-      transform: translateX(-50%) rotate(45deg);
-      transform-origin: bottom center;
-    }
-
-    /* Дополнительные мягкие тени по диагоналям */
-    .shadow-line {
-      position: absolute;
-      width: 22px;
-      height: 60%;
-      left: 50%;
-      background: linear-gradient(
-        to right,
-        rgba(0,0,0,0),
-        rgba(0,0,0,0.08),
-        rgba(0,0,0,0)
-      );
-      filter: blur(7px);
-      pointer-events: none;
-      z-index: 18;
-      opacity: 0.65;
-    }
-
-    .shadow-line.s1 {
-      top: -2%;
-      transform: translateX(-50%) rotate(45deg);
-      transform-origin: top center;
-    }
-
-    .shadow-line.s2 {
-      top: -2%;
-      transform: translateX(-50%) rotate(-45deg);
-      transform-origin: top center;
-    }
-
-    .shadow-line.s3 {
-      bottom: -2%;
-      transform: translateX(-50%) rotate(-45deg);
-      transform-origin: bottom center;
-    }
-
-    .shadow-line.s4 {
-      bottom: -2%;
-      transform: translateX(-50%) rotate(45deg);
-      transform-origin: bottom center;
-    }
-
-    .seal-button {
-      position: absolute;
-      left: 50%;
-      top: 50%;
-      width: clamp(72px, 11vw, 110px);
-      height: clamp(72px, 11vw, 110px);
-      transform: translate(-50%, -50%);
-      border: 0;
-      background: transparent;
       padding: 0;
-      cursor: pointer;
-      z-index: 25;
-      transition: transform 0.25s ease, opacity 0.25s ease;
-    }
-
-    .seal-button img {
-      width: 100%;
-      height: 100%;
-      object-fit: contain;
-      display: block;
-      filter: drop-shadow(0 8px 12px rgba(0,0,0,0.25));
-    }
-
-    .seal-button:hover {
-      transform: translate(-50%, -50%) scale(1.04);
-    }
-
-    /* Открытие */
-    .intro.open .seal-button {
-      opacity: 0;
-      pointer-events: none;
-    }
-
-    .intro.open .flap-top {
-      transform: rotateX(165deg);
-    }
-
-    .intro.open .flap-left {
-      transform: rotateY(-155deg);
-    }
-
-    .intro.open .flap-right {
-      transform: rotateY(155deg);
-    }
-
-    .intro.open .flap-bottom {
-      transform: translateY(8%);
+      overflow: hidden;
     }
 
     .intro.hide {
       pointer-events: none;
     }
 
-    /* =========================
-         КОНТЕНТ САЙТА
-       ========================= */
+    .envelope-stage {
+      position: relative;
+      width: min(100vw, 820px);
+      height: 100vh;
+      max-height: 100vh;
+      overflow: hidden;
+      background:
+        linear-gradient(180deg, #dcdcdc 0%, #d6d6d4 46%, #d1d1cf 100%);
+    }
 
-    .content {
+    .paper-noise {
+      position: absolute;
+      inset: 0;
+      pointer-events: none;
+      opacity: 0.08;
+      z-index: 30;
+      background-image:
+        radial-gradient(rgba(0,0,0,0.18) 0.55px, transparent 0.55px);
+      background-size: 7px 7px;
+      mix-blend-mode: multiply;
+    }
+
+    .flap {
+      position: absolute;
+      will-change: transform;
+      transition: transform 1.2s cubic-bezier(.22,.85,.15,1);
+      backface-visibility: hidden;
+      transform-style: preserve-3d;
+    }
+
+    .flap-top {
+      left: 0;
+      top: 0;
+      width: 100%;
+      height: 49%;
+      background: linear-gradient(180deg, #dfdfdd 0%, #d7d7d5 100%);
+      clip-path: polygon(0 0, 100% 0, 50% 100%);
+      transform-origin: top center;
+      z-index: 16;
+      box-shadow: inset 0 -20px 26px rgba(0,0,0,0.05);
+    }
+
+    .flap-left {
+      left: 0;
+      top: 0;
+      width: 54%;
+      height: 100%;
+      background: linear-gradient(180deg, #d7d7d5 0%, #d3d3d1 100%);
+      clip-path: polygon(0 0, 100% 50%, 0 100%);
+      transform-origin: left center;
+      z-index: 14;
+      box-shadow: inset -12px 0 18px rgba(255,255,255,0.08);
+    }
+
+    .flap-right {
+      right: 0;
+      top: 0;
+      width: 54%;
+      height: 100%;
+      background: linear-gradient(180deg, #d8d8d6 0%, #d0d0ce 100%);
+      clip-path: polygon(100% 0, 0 50%, 100% 100%);
+      transform-origin: right center;
+      z-index: 13;
+      box-shadow: inset 12px 0 18px rgba(255,255,255,0.06);
+    }
+
+    .flap-bottom {
+      left: 0;
+      bottom: 0;
+      width: 100%;
+      height: 44%;
+      background: linear-gradient(180deg, #d3d3d1 0%, #cbcbca 100%);
+      clip-path: polygon(0 100%, 100% 100%, 50% 0);
+      z-index: 12;
+      box-shadow: inset 0 20px 30px rgba(0,0,0,0.05);
+    }
+
+    /* мягкие линии сгиба */
+    .crease {
+      position: absolute;
+      left: 50%;
+      width: 2px;
+      background: rgba(0,0,0,0.12);
+      filter: blur(0.8px);
+      pointer-events: none;
+      z-index: 20;
+    }
+
+    .crease-top-left,
+    .crease-top-right {
+      top: -6%;
+      height: 62%;
+      transform-origin: top center;
+    }
+
+    .crease-bottom-left,
+    .crease-bottom-right {
+      bottom: -6%;
+      height: 62%;
+      transform-origin: bottom center;
+    }
+
+    .crease-top-left {
+      transform: translateX(-50%) rotate(45deg);
+    }
+
+    .crease-top-right {
+      transform: translateX(-50%) rotate(-45deg);
+    }
+
+    .crease-bottom-left {
+      transform: translateX(-50%) rotate(-45deg);
+    }
+
+    .crease-bottom-right {
+      transform: translateX(-50%) rotate(45deg);
+    }
+
+    .soft-shadow {
+      position: absolute;
+      left: 50%;
+      width: 26px;
+      pointer-events: none;
+      z-index: 21;
+      opacity: 0.38;
+      filter: blur(9px);
+      background: linear-gradient(
+        to right,
+        rgba(0,0,0,0),
+        rgba(0,0,0,0.12),
+        rgba(0,0,0,0)
+      );
+    }
+
+    .soft-shadow.s1,
+    .soft-shadow.s2 {
+      top: -3%;
+      height: 60%;
+      transform-origin: top center;
+    }
+
+    .soft-shadow.s3,
+    .soft-shadow.s4 {
+      bottom: -3%;
+      height: 60%;
+      transform-origin: bottom center;
+    }
+
+    .soft-shadow.s1 {
+      transform: translateX(-50%) rotate(45deg);
+    }
+
+    .soft-shadow.s2 {
+      transform: translateX(-50%) rotate(-45deg);
+    }
+
+    .soft-shadow.s3 {
+      transform: translateX(-50%) rotate(-45deg);
+    }
+
+    .soft-shadow.s4 {
+      transform: translateX(-50%) rotate(45deg);
+    }
+
+    .seal-btn {
+      position: absolute;
+      left: 50%;
+      top: 50%;
+      transform: translate(-50%, -50%);
+      width: clamp(82px, 12vw, 110px);
+      height: clamp(82px, 12vw, 110px);
+      border: 0;
+      padding: 0;
+      background: transparent;
+      cursor: pointer;
+      z-index: 25;
+      transition: transform 0.28s ease, opacity 0.28s ease;
+    }
+
+    .seal-btn:hover {
+      transform: translate(-50%, -50%) scale(1.03);
+    }
+
+    .seal-btn img {
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
+      filter: drop-shadow(0 8px 12px rgba(0,0,0,0.18));
+    }
+
+    .intro.open .seal-btn {
+      opacity: 0;
+      pointer-events: none;
+    }
+
+    .intro.open .flap-top {
+      transform: rotateX(163deg);
+    }
+
+    .intro.open .flap-left {
+      transform: rotateY(-150deg);
+    }
+
+    .intro.open .flap-right {
+      transform: rotateY(150deg);
+    }
+
+    .intro.open .flap-bottom {
+      transform: translateY(7%);
+    }
+
+    /* ===== ОСНОВНОЙ КОНТЕНТ ===== */
+
+    .site {
       position: relative;
       z-index: 1;
+      background: var(--bg-main);
       opacity: 0;
       transform: translateY(24px);
       transition: opacity 0.9s ease, transform 0.9s ease;
-      padding: 32px 18px 60px;
-      max-width: 900px;
-      margin: 0 auto;
+      padding-bottom: 40px;
     }
 
-    .content.show {
+    .site.show {
       opacity: 1;
       transform: translateY(0);
     }
 
-    .hero {
-      padding-top: 30px;
+    .wrap {
+      width: min(100%, var(--content-width));
+      margin: 0 auto;
+      background: var(--bg-main);
     }
 
-    .hero-card {
-      background: #ffffffcc;
-      backdrop-filter: blur(10px);
-      border-radius: 26px;
-      overflow: hidden;
-      box-shadow: 0 18px 44px rgba(0,0,0,0.10);
+    .video-section {
+      background: var(--bg-main);
+      padding: 0;
     }
 
-    .hero-card img {
+    .design-video {
       width: 100%;
-      display: block;
-      aspect-ratio: 4 / 5;
+      background: var(--bg-main);
+      aspect-ratio: 9 / 16;
       object-fit: cover;
     }
 
-    .hero-text {
-      padding: 28px 20px 30px;
+    /* ===== БЛОК ТАЙМЕРА ===== */
+
+    .timer-screen {
+      background: var(--bg-main);
+      color: var(--text-light);
+    }
+
+    .timer-top {
+      padding: 54px 24px 42px;
       text-align: center;
+      background: var(--bg-main);
     }
 
-    .hero-text h1 {
-      font-size: clamp(30px, 6vw, 52px);
+    .timer-kicker {
+      font-size: clamp(20px, 3.8vw, 28px);
+      line-height: 1.2;
+      margin: 0 0 22px;
       font-weight: 400;
-      color: #4f4037;
-      margin-bottom: 14px;
+      letter-spacing: 0.01em;
     }
 
-    .hero-text p {
-      font-size: clamp(16px, 2.8vw, 20px);
-      color: #6a5a50;
-      line-height: 1.7;
-    }
-
-    .section {
-      margin-top: 26px;
-    }
-
-    .section-card {
-      background: rgba(255,255,255,0.88);
-      border-radius: 24px;
-      padding: 18px;
-      box-shadow: 0 16px 40px rgba(0,0,0,0.08);
-    }
-
-    .section-title {
-      text-align: center;
-      color: #544338;
-      font-size: clamp(22px, 4vw, 32px);
+    .timer-date {
+      margin: 0;
+      font-size: clamp(42px, 8vw, 74px);
+      line-height: 1.05;
       font-weight: 400;
-      margin-bottom: 16px;
+      letter-spacing: 0.01em;
     }
 
-    .video-box video {
-      width: 100%;
-      display: block;
-      border-radius: 18px;
-      background: #000;
+    .timer-label-top {
+      margin: 22px 0 0;
+      font-size: clamp(20px, 3.4vw, 28px);
+      line-height: 1.2;
+      opacity: 0.96;
     }
 
-    .gallery {
+    .countdown-band {
+      background: var(--white-band);
+      color: var(--text-dark);
+      padding: 34px 14px 38px;
+    }
+
+    .countdown-grid {
       display: grid;
-      grid-template-columns: 1fr;
-      gap: 14px;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 0;
+      align-items: start;
+      width: 100%;
+      max-width: 760px;
+      margin: 0 auto;
     }
 
-    .gallery img {
+    .countdown-item {
+      position: relative;
+      min-height: 156px;
+      display: flex;
+      flex-direction: column;
+      justify-content: flex-start;
+      align-items: center;
+      padding: 18px 8px 0;
+    }
+
+    .countdown-item::before {
+      content: "";
+      position: absolute;
+      top: 0;
+      bottom: 22px;
+      left: 0;
+      width: 2px;
+      background: var(--line);
+      opacity: 0.9;
+    }
+
+    .countdown-item:last-child::after {
+      content: "";
+      position: absolute;
+      top: 0;
+      bottom: 22px;
+      right: 0;
+      width: 2px;
+      background: var(--line);
+      opacity: 0.9;
+    }
+
+    .count-num {
+      font-size: clamp(34px, 7vw, 62px);
+      line-height: 1;
+      margin-top: 6px;
+      margin-bottom: 16px;
+      font-weight: 400;
+      color: var(--text-dark);
+    }
+
+    .count-name {
+      font-size: clamp(14px, 2.3vw, 18px);
+      line-height: 1.2;
+      letter-spacing: 0.02em;
+      text-transform: uppercase;
+      color: rgba(84, 87, 94, 0.86);
+    }
+
+    /* ===== ГАЛЕРЕЯ ===== */
+
+    .gallery-section {
+      background: var(--bg-main);
+      padding: 34px 0 24px;
+    }
+
+    .gallery-shell {
       width: 100%;
-      border-radius: 18px;
-      display: block;
+      overflow: hidden;
+    }
+
+    .gallery-track {
+      display: flex;
+      gap: 14px;
+      overflow-x: auto;
+      scroll-snap-type: x mandatory;
+      scroll-behavior: smooth;
+      padding: 0 18px 10px;
+      -ms-overflow-style: none;
+      scrollbar-width: none;
+    }
+
+    .gallery-track::-webkit-scrollbar {
+      display: none;
+    }
+
+    .gallery-slide {
+      flex: 0 0 86%;
+      scroll-snap-align: center;
+      border-radius: 22px;
+      overflow: hidden;
+      background: rgba(255,255,255,0.08);
+      box-shadow: 0 12px 28px rgba(0,0,0,0.16);
+    }
+
+    .gallery-slide img {
+      width: 100%;
       aspect-ratio: 4 / 5;
       object-fit: cover;
     }
 
-    @media (min-width: 720px) {
-      .gallery {
-        grid-template-columns: repeat(3, 1fr);
+    .gallery-dots {
+      display: flex;
+      justify-content: center;
+      gap: 8px;
+      margin-top: 14px;
+    }
+
+    .gallery-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: rgba(255,255,255,0.28);
+      transition: transform 0.25s ease, background 0.25s ease;
+    }
+
+    .gallery-dot.active {
+      background: rgba(255,255,255,0.95);
+      transform: scale(1.12);
+    }
+
+    .spacer {
+      height: 20px;
+      background: var(--bg-main);
+    }
+
+    @media (min-width: 768px) {
+      .intro {
+        padding: 0;
+      }
+
+      .envelope-stage {
+        border-radius: 0;
+      }
+
+      .timer-top {
+        padding: 68px 34px 52px;
+      }
+
+      .countdown-band {
+        padding: 38px 20px 42px;
+      }
+
+      .gallery-slide {
+        flex: 0 0 58%;
       }
     }
   </style>
 </head>
 <body class="locked">
   <div class="page">
-    <!-- Конверт -->
     <div class="intro" id="intro">
-      <div class="envelope-frame">
-        <div class="envelope-core"></div>
-
+      <div class="envelope-stage">
         <div class="flap flap-bottom"></div>
         <div class="flap flap-right"></div>
         <div class="flap flap-left"></div>
         <div class="flap flap-top"></div>
 
-        <div class="crease top-left"></div>
-        <div class="crease top-right"></div>
-        <div class="crease bottom-left"></div>
-        <div class="crease bottom-right"></div>
+        <div class="crease crease-top-left"></div>
+        <div class="crease crease-top-right"></div>
+        <div class="crease crease-bottom-left"></div>
+        <div class="crease crease-bottom-right"></div>
 
-        <div class="shadow-line s1"></div>
-        <div class="shadow-line s2"></div>
-        <div class="shadow-line s3"></div>
-        <div class="shadow-line s4"></div>
+        <div class="soft-shadow s1"></div>
+        <div class="soft-shadow s2"></div>
+        <div class="soft-shadow s3"></div>
+        <div class="soft-shadow s4"></div>
 
         <div class="paper-noise"></div>
 
-        <button class="seal-button" id="openEnvelope" aria-label="Открыть приглашение">
+        <button class="seal-btn" id="openEnvelope" aria-label="Открыть приглашение">
           <img src="seal.png" alt="Печать">
         </button>
       </div>
     </div>
 
-    <!-- Контент сайта -->
-    <main class="content" id="content">
-      <section class="hero">
-        <div class="hero-card">
-          <img src="hero-photo.jpg" alt="Главное фото">
-          <div class="hero-text">
-            <h1>Анна & Влад</h1>
-            <p>
-              Здесь будет ваш первый экран после открытия конверта.
-              Ты можешь поставить сюда своё главное фото, имена, дату и любой текст.
-            </p>
-          </div>
-        </div>
-      </section>
+    <main class="site" id="site">
+      <div class="wrap">
+        <section class="video-section">
+          <video class="design-video auto-once" muted playsinline preload="metadata">
+            <source src="photo1.mp4" type="video/mp4">
+          </video>
+        </section>
 
-    
+        <section class="video-section">
+          <video class="design-video auto-once" muted playsinline preload="metadata">
+            <source src="photo2.mp4" type="video/mp4">
+          </video>
+        </section>
 
-      <section class="section">
-        <div class="section-card">
-          <h2 class="section-title">Фотографии</h2>
-          <div class="gallery">
-            <img src="photo1.MOV" alt="Фото 1">
-            <img src="photo2.mov" alt="Фото 2">
-            <img src="photo3.mov" alt="Фото 3">
-            <img src="photo4.MOV" alt="Фото 1">
-            <img src="photo5.MOV" alt="Фото 1">
+        <section class="video-section">
+          <video class="design-video auto-once" muted playsinline preload="metadata">
+            <source src="photo3.mp4" type="video/mp4">
+          </video>
+        </section>
+
+        <section class="timer-screen">
+          <div class="timer-top">
+            <p class="timer-kicker">С радостью приглашаемое&nbsp;!</p>
+            <h2 class="timer-date">23 мая 2026</h2>
+            <p class="timer-label-top">Осталось...</p>
           </div>
-        </div>
-      </section>
+
+          <div class="countdown-band">
+            <div class="countdown-grid">
+              <div class="countdown-item">
+                <div class="count-num" id="days">000</div>
+                <div class="count-name">дни</div>
+              </div>
+              <div class="countdown-item">
+                <div class="count-num" id="hours">00</div>
+                <div class="count-name">часы</div>
+              </div>
+              <div class="countdown-item">
+                <div class="count-num" id="minutes">00</div>
+                <div class="count-name">минуты</div>
+              </div>
+              <div class="countdown-item">
+                <div class="count-num" id="seconds">00</div>
+                <div class="count-name">секунды</div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <section class="video-section">
+          <video class="design-video auto-once" muted playsinline preload="metadata">
+            <source src="photo4.mp4" type="video/mp4">
+          </video>
+        </section>
+
+        <section class="gallery-section">
+          <div class="gallery-shell">
+            <div class="gallery-track" id="galleryTrack">
+              <div class="gallery-slide"><img src="gallery-1.JPG" alt="Фото 1"></div>
+              <div class="gallery-slide"><img src="gallery-2.JPG" alt="Фото 2"></div>
+              <div class="gallery-slide"><img src="gallery-3.JPG" alt="Фото 3"></div>
+              <div class="gallery-slide"><img src="gallery-4.JPG" alt="Фото 4"></div>
+            </div>
+            <div class="gallery-dots" id="galleryDots">
+              <span class="gallery-dot active"></span>
+              <span class="gallery-dot"></span>
+              <span class="gallery-dot"></span>
+              <span class="gallery-dot"></span>
+            </div>
+          </div>
+        </section>
+
+        <section class="video-section">
+          <video class="design-video auto-once" muted playsinline preload="metadata">
+            <source src="photo5.mp4" type="video/mp4">
+          </video>
+        </section>
+
+        <div class="spacer"></div>
+      </div>
     </main>
   </div>
 
   <script>
-    const intro = document.getElementById("intro");
-    const content = document.getElementById("content");
-    const openEnvelope = document.getElementById("openEnvelope");
-    const body = document.body;
+    const intro = document.getElementById('intro');
+    const site = document.getElementById('site');
+    const openEnvelope = document.getElementById('openEnvelope');
 
-    openEnvelope.addEventListener("click", () => {
-      intro.classList.add("open");
+    openEnvelope.addEventListener('click', () => {
+      intro.classList.add('open');
 
       setTimeout(() => {
-        content.classList.add("show");
+        site.classList.add('show');
       }, 650);
 
       setTimeout(() => {
-        intro.classList.add("hide");
-        body.classList.remove("locked");
+        intro.classList.add('hide');
+        document.body.classList.remove('locked');
       }, 1500);
+
+      setTimeout(() => {
+        intro.style.display = 'none';
+      }, 1750);
     });
+
+    // ===== Таймер до 23 мая 2026 =====
+    const daysEl = document.getElementById('days');
+    const hoursEl = document.getElementById('hours');
+    const minutesEl = document.getElementById('minutes');
+    const secondsEl = document.getElementById('seconds');
+
+    function pad(value) {
+      return String(value).padStart(2, '0');
+    }
+
+    function updateCountdown() {
+      const target = new Date('2026-05-23T00:00:00');
+      const now = new Date();
+      let diff = target - now;
+
+      if (diff < 0) diff = 0;
+
+      const totalSeconds = Math.floor(diff / 1000);
+      const days = Math.floor(totalSeconds / 86400);
+      const hours = Math.floor((totalSeconds % 86400) / 3600);
+      const minutes = Math.floor((totalSeconds % 3600) / 60);
+      const seconds = totalSeconds % 60;
+
+      daysEl.textContent = String(days).padStart(3, '0');
+      hoursEl.textContent = pad(hours);
+      minutesEl.textContent = pad(minutes);
+      secondsEl.textContent = pad(seconds);
+    }
+
+    updateCountdown();
+    setInterval(updateCountdown, 1000);
+
+    // ===== Видео: проиграть один раз при появлении в зоне видимости =====
+    const videos = document.querySelectorAll('.auto-once');
+
+    videos.forEach(video => {
+      video.dataset.played = 'false';
+      video.removeAttribute('controls');
+
+      video.addEventListener('ended', () => {
+        video.dataset.played = 'true';
+      });
+    });
+
+    const videoObserver = new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+        const video = entry.target;
+
+        if (entry.isIntersecting && entry.intersectionRatio > 0.6) {
+          if (video.dataset.played !== 'true') {
+            const playPromise = video.play();
+            if (playPromise !== undefined) {
+              playPromise.catch(() => {});
+            }
+          }
+        } else {
+          if (video.dataset.played !== 'true') {
+            video.pause();
+          }
+        }
+      });
+    }, {
+      threshold: [0.2, 0.6, 0.9]
+    });
+
+    videos.forEach(video => videoObserver.observe(video));
+
+    // ===== Галерея: точки и свайп =====
+    const galleryTrack = document.getElementById('galleryTrack');
+    const dots = Array.from(document.querySelectorAll('.gallery-dot'));
+    const slides = Array.from(document.querySelectorAll('.gallery-slide'));
+
+    function updateDots() {
+      const trackCenter = galleryTrack.scrollLeft + galleryTrack.clientWidth / 2;
+
+      let activeIndex = 0;
+      let minDistance = Infinity;
+
+      slides.forEach((slide, index) => {
+        const slideCenter = slide.offsetLeft + slide.clientWidth / 2;
+        const distance = Math.abs(trackCenter - slideCenter);
+        if (distance < minDistance) {
+          minDistance = distance;
+          activeIndex = index;
+        }
+      });
+
+      dots.forEach((dot, i) => {
+        dot.classList.toggle('active', i === activeIndex);
+      });
+    }
+
+    galleryTrack.addEventListener('scroll', updateDots, { passive: true });
+    window.addEventListener('load', updateDots);
+    window.addEventListener('resize', updateDots);
   </script>
 </body>
 </html>
